@@ -38,6 +38,8 @@ class VannaVolga:
         def d2(s,fwd,k,v,t):
             return d1(s,fwd,k,v,t) - np.sqrt(t)*v
 
+        BF = vv.convert_bfly(v,BF,RR)
+
         S1 = vv.VolK(v,BF,RR,'PUT')/100
         S2 = v/100
         S3 = vv.VolK(v,BF,RR,'CALL')/100
@@ -73,17 +75,8 @@ class VannaVolga:
         d1d2 = d1(s,fwd,K,S2,t)*d2(s,fwd,K,S2,t)
         return (S2+(-S2+np.sqrt(S2**2+d1d2*(2*S2*p+q)))/d1d2)*100
 
-    def plot_surface(self):
-        delta_call_put = []
-        delta_range = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.49, 0.49, 0.45, 0.4, 0.35, 0.3, 0.25, 0.2,
-                       0.15, 0.1, 0.05]
-        delta_names = ['5d Put', '10d Put', '15d Put', '20d Put', '25d Put', '30d Put', '35d Put', '40d Put', '45d Put',
-                       '50d Put',
-                       '50d Call', '45d Call', '40d Call', '35d Call', '30d Call', '25d Call', '20d Call', '15d Call',
-                       '10d Call', '5d Call']
-        call_put = ['PUT', 'PUT', 'PUT', 'PUT', 'PUT', 'PUT', 'PUT', 'PUT', 'PUT', 'PUT', 'CALL', 'CALL', 'CALL',
-                    'CALL', 'CALL', 'CALL', 'CALL', 'CALL', 'CALL', 'CALL']
 
 
 
-print(VannaVolga(113.53,112,-0.0511,'2022-01-20','2021-12-20',6.013,-0.853,0.210,'CALL',0.25,deltaBase=True,atm_conv='DN').GetImpliedVol())
+
+print(VannaVolga(114.295,116.057,-0.1035,'2022-03-22','2021-12-22',6.26,-0.79,0.238,'CALL',0.25,deltaBase=True,atm_conv='DN').GetImpliedVol())

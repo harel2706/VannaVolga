@@ -38,3 +38,6 @@ def Get_DN_Strike(S,fwd,v,expiry_date,value_date,deltaBase=True):
     get_k = lambda K : opt_call(S,K,fwd,v,expiry_date,value_date,deltaBase) + opt_put(S,K,fwd,v,expiry_date,value_date,deltaBase)
     return optimize.newton(get_k,guess_k)
 
+def convert_bfly(v,BF,RR):
+    return BF+(-0.02*RR)+(0.0005778*abs(RR/BF))+(-0.17*RR/v)
+
