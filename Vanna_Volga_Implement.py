@@ -46,17 +46,29 @@ def plot_surface(S,fwd_curve,v_atm,RR_term,BF_term,expiries,value_date,delta,del
         market_data.append(data)
 
     for term in market_data:
-        for strike in delta_call_put:
-            K = GetStrikeFromDelta(S,term[1],term[2],term[0],
-                                  value_date,strike[1],strike[0])
-            vol = VannaVolga(S,K,term[1],term[0],value_date,term[2],term[3],term[4],
-                             'CALL',0.25,deltaBase,atm_conv).GetImpliedVol()
-            vol_surface.append(vol)
+        vol = [VannaVolga(S,
+                          GetStrikeFromDelta(S=S,fwd=term[1],v=term[2],
+                                             expiry_date=term[0],value_date=value_date,CallPut=strike[1],
+                                             delta=strike[0]),
+                          fwd=term[1],expiry_date=term[0],value_date=value_date,
+                          v_atm=term[2],RR=term[3],BF=term[4],CallPut='CALL',delta=0.25,
+                          deltaBase=deltaBase,atm_conv=atm_conv).GetImpliedVol() for strike in delta_call_put]
+        vol_surface.append(vol)
 
 
 
     vol_surface = np.array(vol_surface).reshape((len(expiries),len(delta_call_put)),order='f')
-    print(vol_surface)
+    df = pd.DataFrame(vol_surface,index=expiries,columns=delta_names)
+
+    fig = go.Figure(data=[go.Surface(z=df.values,
+                                     x=delta_names,
+                                     y=expiries, colorscale='Viridis')])
+
+    fig.update_layout(width=800,height=800,scene=dict(xaxis_title='delta strikes',
+                                                      yaxis_title='expiries',
+                                                      zaxis_title='volatility',))
+
+    fig.show()
 
 expiries = ['2021-12-29','2022-01-04','2022-01-22','2022-02-22','2022-03-22','2022-06-22','2022-09-22','2022-12-22']
 fwd_curve = [0 ,-0.034,-0.038,-0.048,-0.07,-0.106,-.16,-0.210 ]
