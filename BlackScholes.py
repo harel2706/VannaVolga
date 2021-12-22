@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import math
 import datetime,time
@@ -74,8 +75,11 @@ class BlackScholes:
         s ,v ,t ,bs  = self.S,self.v,self.t,self.BuySell
         return (bs**2)*(BlackScholes.vega(self)/s)*(1-(BlackScholes.d1(self)/(v * t)))
 
+    def dVdK(self):
+        f, k, v ,t  = self.f , self.K , self.v ,self.t
 
-
-
+        sqr_2pi = np.sqrt(2*np.pi*(v**2)*t)
+        d1 = (np.log(k/f)+((v**2)/2)*t)**2
+        return (1/k)*(1/sqr_2pi)*np.exp(-(1/(2*(v**2)*t))*(d1))
 
 
