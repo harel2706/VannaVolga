@@ -1,9 +1,7 @@
-import matplotlib.pyplot as plt
 import numpy as np
-import math
+from math import log,sqrt,exp,pi
 import datetime,time
 from scipy.stats import norm
-import scipy.stats as si
 from datetime import timedelta
 
 def T(expiry_date,value_date):
@@ -36,11 +34,11 @@ class BlackScholes:
 
     def d1(self):
         f,k,v,t = self.f,self.K,self.v,self.t
-        return (np.log(f/k)+(v**2*t)/2)/(np.sqrt(t)*v)
+        return (log(f/k)+(pow(v,2)*t)/2)/(sqrt(t)*v)
 
     def d2(self):
         v,t = self.v,self.t
-        return BlackScholes.d1(self) - v*np.sqrt(t)
+        return BlackScholes.d1(self) - v*sqrt(t)
 
     def price(self):
         f,k,v,t,c_p,bs,n = self.f,self.K,self.v,self.t,self.CallPut,self.BuySell,self.Notional
@@ -49,23 +47,25 @@ class BlackScholes:
     def delta(self):
         bs , n ,c_p =self.BuySell,self.Notional ,self.CallPut
 
-        if self.deltaBase==True:
-            return bs *(c_p* norm.cdf(c_p* BlackScholes.d1(self)) - BlackScholes.price(self))*n
-        else:
-            return bs *c_p * norm.cdf(c_p* BlackScholes.d1(self))*n
+        delta = np.where(self.deltaBase==True,
+                         (bs *(c_p* norm.cdf(c_p* BlackScholes.d1(self)) - BlackScholes.price(self))*n),
+                         (bs *c_p * norm.cdf(c_p* BlackScholes.d1(self))*n))
+
+        return delta
+
     def vega(self):
         s,f,t,bs,n = self.S,self.f,self.t,self.BuySell,self.Notional
-        return bs * ((norm.pdf(BlackScholes.d1(self)))*f*np.sqrt(t)*0.01/s)*n
+        return bs * ((norm.pdf(BlackScholes.d1(self)))*f*sqrt(t)*0.01/s)*n
 
     def theta(self):
         s,f,t,bs,n = self.S,self.f,self.t,self.BuySell,self.Notional
-        return round(bs * (((-1/365*f*norm.pdf(BlackScholes.d1(self)))/2*np.sqrt(t))/s)*n,2)
+        return round(bs * (((-1/365*f*norm.pdf(BlackScholes.d1(self)))/2*sqrt(t))/s)*n,2)
 
     #2nd order greeks
 
     def gamma(self):
         f,v,t,bs,n = self.f, self.v,self.t, self.BuySell, self.Notional
-        return round(bs * ((norm.pdf(BlackScholes.d1(self))*f*0.01)/(f*v*np.sqrt(t)))*n,2)
+        return round(bs * ((norm.pdf(BlackScholes.d1(self))*f*0.01)/(f*v*sqrt(t)))*n,2)
 
     def volga(self):
         v = self.v
@@ -73,13 +73,18 @@ class BlackScholes:
 
     def vanna(self):
         s ,v ,t ,bs  = self.S,self.v,self.t,self.BuySell
-        return (bs**2)*(BlackScholes.vega(self)/s)*(1-(BlackScholes.d1(self)/(v * t)))
+        return (pow(bs,2))*(BlackScholes.vega(self)/s)*(1-(BlackScholes.d1(self)/(v * t)))
 
     def dVdK(self):
         f, k, v ,t  = self.f , self.K , self.v ,self.t
 
-        sqr_2pi = np.sqrt(2*np.pi*(v**2)*t)
-        d1 = (np.log(k/f)+((v**2)/2)*t)**2
-        return (1/k)*(1/sqr_2pi)*np.exp(-(1/(2*(v**2)*t))*(d1))
+        sqr_2pi = sqrt(2*pi*(pow(v,2))*t)
+        d1 = pow((log(k/f)+((pow(v,2))/2)*t),2)
+        return (1/k)*(1/sqr_2pi)*exp(-(1/(2*(v**2)*t))*(d1))
 
+    def vega_volga_risk(self):
+        vega = BlackScholes.vega(self)
+        volga = BlackScholes.volga(self)
+
+        return (vega+volga)
 
