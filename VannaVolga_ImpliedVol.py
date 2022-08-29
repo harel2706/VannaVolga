@@ -51,8 +51,8 @@ class VannaVolga:
         S3 = vv.VolK(v,BF,RR,'CALL')/100
 
         K1 = np.where(self.deltaBase==True,
-                      vv.GetStrikeFromDeltaPA(s,fwd,vv.VolK(v,BF,RR,'PUT'),expiry_date,value_date,'PUT',delta),
-                      vv.GetStrikeFromDelta(s, fwd, vv.VolK(v, BF, RR, 'PUT'), expiry_date, value_date, 'PUT', delta)
+                      vv.GetStrikeFromDeltaPA(s,fwd,S1,expiry_date,value_date,'PUT',delta),
+                      vv.GetStrikeFromDelta(s, fwd, S1, expiry_date, value_date, 'PUT', delta)
                       )
         K2 = np.where(self.deltaBase==True,
                       np.where(self.atm_conv=='DN',
@@ -61,8 +61,8 @@ class VannaVolga:
                       f *exp((pow(S2,2)) / 2 * t))
 
         K3 = np.where(self.delta==True,
-                      vv.GetStrikeFromDeltaPA(s,fwd,vv.VolK(v,BF,RR,'CALL'),expiry_date,value_date,'CALL',delta),
-                      vv.GetStrikeFromDelta(s, fwd, vv.VolK(v, BF, RR, 'CALL'), expiry_date, value_date, 'CALL', delta))
+                      vv.GetStrikeFromDeltaPA(s,fwd,S3,expiry_date,value_date,'CALL',delta),
+                      vv.GetStrikeFromDelta(s, fwd, S3, expiry_date, value_date, 'CALL', delta))
 
         y1 = (log(K2/K)*log(K3/K))/(log(K2/K1)*log(K3/K1))
         y2 = (log(K/K1)*log(K3/K))/(log(K2/K1)*log(K3/K2))
@@ -72,7 +72,10 @@ class VannaVolga:
         q = y1 * d1(s,fwd,K1,S2,t)*d2(s,fwd,K3,S2,t)*(pow((S1-S2),2)) +\
             y3 * d1(s,fwd,K3,S2,t)*d2(s,fwd,K3,S2,t)*(pow((S3-S2),2))
         d1d2 = d1(s,fwd,K,S2,t)*d2(s,fwd,K,S2,t)
-        return (S2+(-S2+sqrt(pow(S2,2)+d1d2*(2*S2*p+q)))/d1d2)*100
+        try:
+            return (S2+(-S2+sqrt(pow(S2,2)+d1d2*(2*S2*p+q)))/d1d2)*100
+        except Exception:
+            return 0.0
 
     def GetImpliedSkew(self):
         s, fwd, f, K, t, expiry_date, value_date, v, RR, BF, delta, CallPut = \
@@ -80,11 +83,20 @@ class VannaVolga:
             self.v_atm, self.RR, self.BF, self.delta, self.CallPut
 
         if self.deltaBase==True:
-            K_Call = vv.GetStrikeFromDeltaPA(S=s,fwd=fwd,v=v,expiry_date=expiry_date,value_Date=value_date,CallPut='CALL',delta=delta)
-            K_Put = vv.GetStrikeFromDeltaPA(S=s,fwd=fwd,v=v,expiry_date=expiry_date,value_Date=value_date,CallPut='PUT',delta=delta)
+            K_Call = vv.GetStrikeFromDeltaPA(S=s,fwd=fwd,v=v,
+                                             expiry_date=expiry_date,value_Date=value_date,
+                                             CallPut='CALL',delta=delta)
+            K_Put = vv.GetStrikeFromDeltaPA(S=s,fwd=fwd,v=v,
+                                            expiry_date=expiry_date,value_Date=value_date,
+                                            CallPut='PUT',delta=delta)
         else:
-            K_Call = vv.GetStrikeFromDelta(S=s,fwd=fwd,v=v,expiry_date=expiry_date,value_date=value_date,CallPut='CALL',delta=delta)
-            K_Put = vv.GetStrikeFromDelta(S=s,fwd=fwd,v=v,expiry_date=expiry_date,value_date=value_date,CallPut='PUT',delta=delta)
+            K_Call = vv.GetStrikeFromDelta(S=s,fwd=fwd,v=v,
+                                           expiry_date=expiry_date,value_date=value_date,
+                                           CallPut='CALL',delta=delta)
+
+            K_Put = vv.GetStrikeFromDelta(S=s,fwd=fwd,v=v,
+                                          expiry_date=expiry_date,value_date=value_date,
+                                          CallPut='PUT',delta=delta)
 
         vol_call = VannaVolga(S=s,K=K_Call,fwd=fwd,
                               expiry_date=expiry_date,value_date=value_date,
@@ -94,8 +106,10 @@ class VannaVolga:
                               expiry_date=expiry_date, value_date=value_date,
                               v_atm=v, RR=RR, BF=BF, CallPut='CALL', delta=delta, deltaBase=self.deltaBase,
                               atm_conv=self.atm_conv).GetImpliedVol()
-
-        return (vol_call - vol_put)/ (log(K_Call/K_Put))/100
+        try:
+            return (vol_call - vol_put)/ (log(K_Call/K_Put))/100
+        except Exception:
+            return 0.0
 
     def Get_dVol_dRR(self):
         s, fwd, f, K, t, expiry_date, value_date, v, RR, BF, delta = \

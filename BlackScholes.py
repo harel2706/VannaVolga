@@ -10,12 +10,12 @@ def T(expiry_date,value_date):
     return ((date2-date1)/timedelta(days=365))
 
 def cp(CallPut):
-    cp = {'CALL':1,'PUT':-1}[CallPut]
-    return cp
+    return {'CALL':1,'PUT':-1}[CallPut]
+
 
 def pos(BuySell):
-    pos = {'BUY':1,'SELL':-1}[BuySell]
-    return pos
+    return {'BUY':1,'SELL':-1}[BuySell]
+
 
 class BlackScholes:
 

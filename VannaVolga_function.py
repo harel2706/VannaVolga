@@ -13,18 +13,11 @@ def GetStrikeFromDelta(S,fwd,v,expiry_date,value_date,CallPut,delta):
     f = (S+fwd)
     t = BlackScholes.T(expiry_date,value_date)
 
-    if v > 1.5:
-        v = v/100
-    else:
-        v = v
+    v = v/100 if v > 1.5 else v
     return f * exp(-c_p*norm.ppf(delta)*v*sqrt(t)+((pow(v,2))/2)*t)
 
 
 def GetStrikeFromDeltaPA(S,fwd,v,expiry_date,value_Date,CallPut,delta):
-
-    c_p = BlackScholes.cp(CallPut.upper())
-    f= (S+fwd)
-    t = BlackScholes.T(expiry_date,value_Date)
 
     K_unadjust = GetStrikeFromDelta(S,fwd,v,expiry_date,value_Date,CallPut,delta)
     get_k= lambda K : abs(BlackScholes.BlackScholes(S,K,fwd,v,expiry_date,value_Date,CallPut,'BUY',1,True).delta()) - 0.25
@@ -33,11 +26,15 @@ def GetStrikeFromDeltaPA(S,fwd,v,expiry_date,value_Date,CallPut,delta):
 def Get_DN_Strike(S,fwd,v,expiry_date,value_date,deltaBase=True):
 
     guess_k = (S+fwd)*exp(-norm.ppf(0.5)*(v/100)*sqrt(BlackScholes.T(expiry_date,value_date))+(pow((v/100),2))/2)
+
     def opt_call(S,K,fwd,v,expiry_date,value_date,deltaBase):
         return BlackScholes.BlackScholes(S,K,fwd,v,expiry_date,value_date,'CALL','BUY',1,deltaBase).delta()
+
     def opt_put(S,K,fwd,v,expiry_date,value_date,deltaBase):
         return BlackScholes.BlackScholes(S,K,fwd,v,expiry_date,value_date,'PUT','BUY',1,deltaBase).delta()
+
     get_k = lambda K : opt_call(S,K,fwd,v,expiry_date,value_date,deltaBase) + opt_put(S,K,fwd,v,expiry_date,value_date,deltaBase)
+
     return optimize.newton(get_k,guess_k)
 
 def convert_bfly(v,BF,RR):
@@ -58,8 +55,7 @@ def interploate_data(expiry_date,value_date,df):
     expiries = df['Time_to_Expiry'].to_numpy()
     market_data = df.to_numpy()
 
-    idx = 0
-    for date in expiries:
+    for idx, date in enumerate(expiries):
         if days_to_expiry > date:
             if days_to_expiry < expiries[idx+1]:
                 w1 = (expiries[idx+1] - days_to_expiry)/(expiries[idx+1]-expiries[idx])
@@ -77,6 +73,5 @@ def interploate_data(expiry_date,value_date,df):
             elif days_to_expiry > expiries[-1]:
                 print('Date is out of range')
                 break
-            else:
-                idx+=1
+
     return v,fwd,rr_25d,rr_10d,bf_25d,bf_10d

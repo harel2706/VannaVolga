@@ -27,11 +27,11 @@ call_put = ['PUT', 'PUT', 'PUT', 'PUT', 'PUT', 'PUT', 'PUT', 'PUT', 'PUT', 'PUT'
 
 
 delta_strike = [[delta,cp] for delta,cp in zip(delta_range,call_put)]
-delta_call_put.append(delta_strike)
+delta_call_put=[delta_strike]
 delta_call_put = delta_call_put[0]
 
 
-def plot_smile(S,fwd,v,RR,BF,expiry_date,value_date,delta,deltaBase=True,atm_conv='DN'):
+def plot_smile(S,fwd,v,RR,BF,expiry_date,value_date,deltaBase=True,atm_conv='DN'):
     vv_vol = []
 
     for strike in delta_call_put:
@@ -43,7 +43,7 @@ def plot_smile(S,fwd,v,RR,BF,expiry_date,value_date,delta,deltaBase=True,atm_con
     plt.xticks(np.arange(0,len(delta_names)),delta_names,rotation=45,fontsize=8)
     plt.show()
 
-plot_smile(114.29,-0.170,6.26,-0.77,0.225,'2022-03-22','2021-12-22',0.25,True,'DN')
+plot_smile(114.29,-0.170,6.26,-0.77,0.225,'2022-03-22','2021-12-22',True,'DN')
 
 def Get_Vol_from_file(file_location,file_name,ref_spot,strike,expiry,value_date,fwd_div=10000,deltaBase=True,atm_conv='DN'):
     df = load_data(file_location,file_name)
@@ -75,11 +75,9 @@ def Get_Vol_from_file(file_location,file_name,ref_spot,strike,expiry,value_date,
 
 def plot_surface(S,fwd_curve,v_atm,RR_term,BF_term,expiries,value_date,delta,deltaBase=True,atm_conv='DN'):
 
-    market_data=[]
-    vol_surface =[]
 
     data = [[expiry,fwd,vol,rr,bf] for expiry,fwd,vol,rr,bf in zip(expiries,fwd_curve,v_atm,RR_term,BF_term)]
-    market_data.append(data)
+    market_data = [data]
     market_data = market_data[0]
 
     vol = [[VannaVolga(S,
@@ -89,7 +87,7 @@ def plot_surface(S,fwd_curve,v_atm,RR_term,BF_term,expiries,value_date,delta,del
                           fwd=term[1],expiry_date=term[0],value_date=value_date,
                           v_atm=term[2],RR=term[3],BF=term[4],CallPut='CALL',delta=delta,
                           deltaBase=deltaBase,atm_conv=atm_conv).GetImpliedVol() for strike in delta_call_put] for term in market_data]
-    vol_surface.append(vol)
+    vol_surface=[vol]
 
 
     vol_surface = np.array(vol_surface).reshape((len(expiries),len(delta_call_put)),order='f')
@@ -164,8 +162,8 @@ def smile_change(spot,ref_spot,fwd,ref_fwd,v_atm,v_atm_ref,rr,rr_ref,bf,bf_ref,e
 
 smile_change(1.04,1.0319,0,0,7.65,7.57,-0.985,-0.99,0.218,0.21,'2022-04-21','2022-01-21')
 
-Get_Vol_from_file('C:/Users/user/Downloads','market_data.csv',1.1039,1.1270,'2022-06-04','2022-03-21',
-                     fwd_div=10000,deltaBase=True,atm_conv='DN')
+# Get_Vol_from_file('C:/Users/user/Downloads','market_data.csv',1.1039,1.1270,'2022-06-04','2022-03-21',
+#                      fwd_div=10000,deltaBase=True,atm_conv='DN')
 
 t1 = time.time()
 
